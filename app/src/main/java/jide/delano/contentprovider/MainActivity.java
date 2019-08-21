@@ -1,5 +1,7 @@
 package jide.delano.contentprovider;
 
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -25,19 +27,63 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickDisplayEntries(View view) {
+
+        String queryUri = Contract.CONTENT_URI.toString();
+        String[] projection = new String[] {Contract.CONTENT_PATH};
+        String selectionClause;
+        String selectionArgs[];
+        String sortOrder = null;
+
+
         switch (view.getId()) {
             case R.id.btn_list:
-                Log.d(TAG, "Yay, I was clicked!");
-                response.setText("Yay, TextView text has changed!");
+                selectionClause = null;
+                selectionArgs = null;
                 break;
             case R.id.btn_word:
-                Log.d(TAG, "Ah! It's you again");
-                response.setText("Just kill me now!");
-
+                selectionClause = Contract.WORD_ID + " = ?";
+                selectionArgs = new String[]{"0"};
                 break;
+            default:
+                selectionClause = null;
+                selectionArgs = null;
+
         }
-//        Log.d(TAG, "Yay, I was clicked!");
+
+
+//        switch (view.getId()) {
+//            case R.id.btn_list:
+//                Log.d(TAG, "Yay, I was clicked!");
+//                response.setText("Yay, TextView text has changed!");
+//                break;
+//            case R.id.btn_word:
+//                Log.d(TAG, "Ah! It's you again");
+//                response.setText("Just kill me now!");
+//
+//                break;
+//    }
+
+        //        Log.d(TAG, "Yay, I was clicked!");
+        Cursor cursor = getContentResolver().query(Uri.parse(queryUri), projection, selectionClause, selectionArgs, sortOrder);
+
+        if (cursor != null) {
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                int columnIndex = cursor.getColumnIndex(projection[0]);
+                do {
+                    String word = cursor.getString(columnIndex);
+                    response.append(word + "\n");
+                } while (cursor.moveToNext());
+            } else {
+                Log.d(TAG, "onClickDisplayEntries " + "No data returned.");
+                response.append("No data returned." + "\n");
+            }
+            cursor.close();
+        } else {
+            Log.d(TAG, "onClickDisplayEntries " + "Cursor is null.");
+            response.append("Cursor is null." + "\n");
+        }
     }
 
-
 }
+
